@@ -151,10 +151,11 @@ namespace Tek4.Highcharts.Exporting
         "{0}.{1}",
         string.IsNullOrEmpty(fileName) ? DefaultFileName : fileName,
         extension);
+      var noUtf8Name = $"{DefaultFileName}.{extension}";
 
       // Create HTTP Content-Disposition header.
-      this.ContentDisposition = 
-        string.Format("attachment; filename={0}", this.FileName);
+      // 导出文件名增加对中文等 UTF-8 字符的支持，以免乱码
+      this.ContentDisposition = $"attachment; filename={noUtf8Name}; filename*=UTF-8''{this.FileName}";
     }
 
     /// <summary>
