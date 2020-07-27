@@ -44,9 +44,10 @@ namespace Tek4.Highcharts.Exporting
   using System.Web;
   using Svg;
   using Svg.Transforms;
-    using System.Xml;
-    using sharpPDF;
-    using System.Drawing;
+  using System.Xml;
+  using sharpPDF;
+  using System.Drawing;
+  using System.Xml.Linq;
 
   /// <summary>
   /// .NET chart exporting class for Highcharts JS JavaScript charts.
@@ -164,10 +165,26 @@ namespace Tek4.Highcharts.Exporting
       SvgDocument svgDoc;
 
       // Create a MemoryStream from SVG string.
-      using (MemoryStream streamSvg = new MemoryStream(
-        Encoding.UTF8.GetBytes(this.Svg)))
+      using (MemoryStream streamSvg = new MemoryStream(Encoding.UTF8.GetBytes(this.Svg)))
       {
-       svgDoc = SvgDocument.Open<SvgDocument>(streamSvg);
+          // 修复图表导出会产生 OverflowException 的 bug
+          // 先将会引起错误的 highcharts-tooltip 节点删除掉
+          XDocument xmlDoc = XDocument.Load(streamSvg);
+          if (xmlDoc.Root != null)
+          {
+              var element = xmlDoc.Root.Elements().FirstOrDefault(e => e.Attribute("class")?.Value == "highcharts-tooltip");
+              element?.Remove();
+          }
+
+          // 然后再生成 svg 文档
+          using (MemoryStream newStream = new MemoryStream())
+          {
+              xmlDoc.Save(newStream);
+              newStream.Seek(0, SeekOrigin.Begin);
+
+              // Create and return SvgDocument from stream.
+              svgDoc = SvgDocument.Open<SvgDocument>(newStream);
+          }
       }
 
       // Scale SVG document to requested width.
