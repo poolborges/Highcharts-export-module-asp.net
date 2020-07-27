@@ -33,6 +33,7 @@
 // REVISION HISTORY:
 // 2011-07-16 KPR Created.
 // 2012-03-03 KPR Bug fix: WriteToStream() PNG requires seekable stream.
+// 2020-07-27 Bug Fix: 修复了新版 highcharts 导出发生 OverflowException 的问题。
 
 namespace Tek4.Highcharts.Exporting
 {
